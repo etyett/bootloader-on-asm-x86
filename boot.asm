@@ -9,12 +9,12 @@ bits 16
     mov sp, 0x7c00
     sti
 
-    mov ah, 0x02    ; Функция чтения сектора
-    mov al, 4       ; Количество секторов
-    mov ch, 0       ; Цилиндр 0
-    mov dh, 0       ; Головка 0
-    mov cl, 2       ; Сектор 2 (второй сектор)
-    mov bx, 0x7E00  ; Загрузить после загрузчика
+    mov ah, 0x02
+    mov al, 4
+    mov ch, 0
+    mov dh, 0
+    mov cl, 2
+    mov bx, 0x7E00
     int 0x13
 
     jmp 0x7e00

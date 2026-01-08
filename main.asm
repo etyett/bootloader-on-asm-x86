@@ -310,6 +310,8 @@ calculator:
     call print
     call input_num
     mov [num2], ax
+    mov si, new_line
+    call print
     mov si, msg_results
     call print
 
@@ -319,7 +321,6 @@ calculator:
     mov ax, [num1]
     mov bx, [num2]
     add ax, bx
-    mov [result], ax
     call print_num
     mov si, new_line
     call print
@@ -330,7 +331,6 @@ calculator:
     mov ax, [num1]
     mov bx, [num2]
     sub ax, bx
-    mov [result], ax
     call print_num
     mov si, new_line
     call print
@@ -341,7 +341,6 @@ calculator:
     mov ax, [num2]
     mov bx, [num1]
     sub ax, bx
-    mov [result], ax
     call print_num
     mov si, new_line
     call print
@@ -359,16 +358,16 @@ calculator:
 .delenie:
     mov si, msg_del
     call print
-    mov ax, [num1]
-    cmp ax, 0
-    je .del_zero
     mov bx, [num2]
     cmp bx, 0
     je .del_zero
+    mov ax, [num1]
     xor dx, dx
     div bx
+    call print_num
     mov si, new_line
     call print
+    jmp .ask
 
 .del_zero:
     mov si, msg_error_del
@@ -376,6 +375,8 @@ calculator:
     jmp .ask
 
 .ask:
+    mov si, new_line
+    call print
     mov si, msg_continue
     call print
     mov ah, 0
@@ -384,12 +385,17 @@ calculator:
     je calculator
     cmp al, 'Y' 
     je calculator
+    mov si, new_line
+    call print
     popa
-    jmp main_loop
+    ret
 
 input_num:
-    pusha
+    push bx
+    push cx
+    push dx
     xor bx, bx
+    xor cx, cx
 
 .input_num_loop:
     mov ah, 0
@@ -405,7 +411,12 @@ input_num:
     mov ah, 0x0e
     int 10h
     sub al, '0' 
-    inc cx
+    mov cl, al
+    mov ax, bx
+    mov dx, 10
+    mul dx
+    mov bx, ax
+    add bx, cx
     jmp .input_num_loop
 
 .backspace:
@@ -427,7 +438,9 @@ input_num:
 
 .done:
     mov ax, bx
-    popa
+    pop dx
+    pop cx
+    pop bx
     ret
 
 print_num:
@@ -435,6 +448,17 @@ print_num:
     push bx
     push cx
     push dx
+    
+    mov bx, ax
+    or bx, bx
+    jns .positive
+    mov ah, 0x0e
+    mov al, '-' 
+    int 10h
+    neg bx
+    
+.positive:
+    mov ax, bx
     cmp ax, 0
     jne .not_zero
     mov ah, 0x0e
@@ -462,10 +486,10 @@ print_num:
     loop .print_digit
 
 .print_num_done:
-    pop ax
-    pop bx
-    pop cx
     pop dx
+    pop cx
+    pop bx
+    pop ax
     ret
 
 logo_line1 db " __     __    _     _  ____                ", 0xd, 0xa, 0
@@ -516,7 +540,6 @@ bill_adress db "Adress:     Russia, Novosibirsk, Noviy sharap, Pochtovaya 36", 0
 
 input_buffer times 65 db 0
 
-num1 times 16 db 0
-num2 times 16 db 0
-result times 16 db 0
-number_buffer times 32 db 0
+num1 dw 0
+num2 dw 0
+result dw 0
